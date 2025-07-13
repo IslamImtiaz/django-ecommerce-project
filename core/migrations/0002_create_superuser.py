@@ -31,7 +31,7 @@ def create_superuser(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         # Ensure this depends on your last 'accounts' migration where the Profile model exists
-        ('accounts', '0004_remove_profile_profile_picture_and_more'),
+        ('core', '0001_initial'),
     ]
     operations = [
         migrations.RunPython(create_superuser),
