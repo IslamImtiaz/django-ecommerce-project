@@ -21,12 +21,13 @@ def create_superuser(apps, schema_editor):
         print(f"Superuser '{username}' already exists. Skipping creation.")
 
 
+# In core/migrations/0002_create_superuser.py
+
 class Migration(migrations.Migration):
 
+    # This line tells Django that this migration depends on the first migration of the 'core' app
     dependencies = [
-        # CORRECTED: This now depends on the last migration of your 'accounts' app.
-        # This ensures the User and Profile tables exist before we try to create a superuser.
-        ('accounts', '0004_remove_profile_profile_picture_and_more'),
+        ('core', '0001_initial'),
     ]
 
     operations = [
