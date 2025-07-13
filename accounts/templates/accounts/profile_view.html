@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %} {# Load static if you use a static placeholder image #}
+
+{% block title %}My Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8"> {# Slightly wider column for better layout #}
+            <div class="card shadow-sm profile-card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-person-circle me-2"></i> My Profile
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                            {# Profile Picture Display #}
+                            {% if user.profile.profile_picture_url %}
+                                {# If a URL exists, use it as the image source #}
+                                <img src="{{ user.profile.profile_picture_url }}" alt="{{ user.username }}'s Profile Picture" class="img-fluid rounded-circle shadow-sm mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                {# Otherwise, show the placeholder icon #}
+                                <div class="profile-pic-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm mx-auto mb-3" style="width: 150px; height: 150px;">
+                                    <i class="bi bi-person-fill" style="font-size: 5rem; color: #6c757d;"></i>
+                                </div>
+                            {% endif %}
+                            <h4 class="mb-1">{{ user.first_name|default:user.username }} {{ user.last_name|default:"" }}</h4>
+                            <p class="text-muted mb-0">@{{ user.username }}</p>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="profile-details">
+                                <h5 class="mb-3 text-primary border-bottom pb-2"><i class="bi bi-person-badge me-2"></i>Account Information</h5>
+                                <dl class="row mb-4">
+                                    <dt class="col-sm-4"><i class="bi bi-envelope me-1"></i> Email:</dt>
+                                    <dd class="col-sm-8">{{ user.email }}</dd>
+
+                                    <dt class="col-sm-4"><i class="bi bi-calendar-check me-1"></i> Joined:</dt>
+                                    <dd class="col-sm-8">{{ user.date_joined|date:"M d, Y" }}</dd>
+                                </dl>
+
+                                <h5 class="mb-3 text-primary border-bottom pb-2"><i class="bi bi-info-circle me-2"></i>Profile Details</h5>
+                                <dl class="row mb-4">
+                                    <dt class="col-sm-4"><i class="bi bi-blockquote-left me-1"></i> Bio:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.bio|default:"Not set"|linebreaksbr }}</dd>
+                                </dl>
+                                
+                                <h5 class="mb-3 text-primary border-bottom pb-2"><i class="bi bi-truck me-2"></i>Contact & Address</h5>
+                                <dl class="row">
+                                    <dt class="col-sm-4"><i class="bi bi-telephone me-1"></i> Phone:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.phone_number|default:"Not set" }}</dd>
+                                    
+                                    <dt class="mb-3 text-primary border-bottom pb-2">Shipping Address:</dt>
+                                    <dt class="col-sm-4"><i class="bi bi-house-door me-1"></i> Address 1:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.address_line_1|default:"Not set" }}</dd>
+
+                                    <dt class="col-sm-4"><i class="bi bi-building me-1"></i> Address 2:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.address_line_2|default:"" }}</dd>
+
+                                    <dt class="col-sm-4"><i class="bi bi-signpost-split me-1"></i> City:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.city|default:"Not set" }}</dd>
+
+                                    <dt class="col-sm-4"><i class="bi bi-map me-1"></i> State:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.state_province_region|default:"Not set" }}</dd>
+
+                                    <dt class="col-sm-4"><i class="bi bi-mailbox2 me-1"></i> Postal Code:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.postal_zip_code|default:"Not set" }}</dd>
+
+                                    <dt class="col-sm-4"><i class="bi bi-globe-americas me-1"></i> Country:</dt>
+                                    <dd class="col-sm-8">{{ user_profile.country|default:"Not set" }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <a href="{% url 'profile_update' %}" class="btn btn-primary btn-lg me-md-2 mb-2 mb-md-0">
+                            <i class="bi bi-pencil-square"></i> Edit Profile
+                        </a>
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-secondary btn-lg">
+                           <i class="bi bi-key-fill"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Optional: Add some subtle styling enhancements */
+    .profile-card .card-header h2 {
+        font-size: 1.5rem;
+    }
+    .profile-details dt {
+        font-weight: 600; /* Slightly bolder definition terms */
+        color: #495057; /* Darker gray for terms */
+    }
+    .profile-details dd {
+        color: #212529; /* Standard text color for definitions */
+    }
+    .profile-details h5 i { /* Align icons nicely with section titles */
+        vertical-align: middle;
+        font-size: 1.1em; /* Slightly larger icons for titles */
+    }
+    .profile-details dt i { /* Align icons nicely with definition terms */
+        vertical-align: text-top; /* or middle, baseline depending on icon set */
+        color: #0d6efd; /* Primary color for icons */
+    }
+</style>
+{% endblock %}

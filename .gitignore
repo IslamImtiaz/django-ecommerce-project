@@ -1,0 +1,26 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Environment #
+.env
+venv/
+
+# Media and Static files #
+# This ignores user-uploaded files (product images, etc.)
+/media/
+# This ignores the folder created by the 'collectstatic' command during deployment
+/staticfiles/
+
+# IDE / Editor specific #
+.vscode/
+.idea/
+
+# Operating System specific #
+.DS_Store
+Thumbs.db

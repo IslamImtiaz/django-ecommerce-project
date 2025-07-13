@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}
+    {% if current_category %}{{ current_category.name }}{% else %}All Products{% endif %} - Our Store
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 d-lg-none mb-3">
+            <button class="btn btn-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCategories" aria-controls="offcanvasCategories">
+                <i class="bi bi-filter-left"></i> Browse Categories
+            </button>
+        </div>
+
+        <div class="col-lg-3 d-none d-lg-block"> {# Changed from col-md-3 to col-lg-3 for breakpoint #}
+            <h2>Categories</h2>
+            <div class="list-group category-sidebar mb-3">
+                <a href="{% url 'store:product_list_all' %}"
+                   class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
+                    All Products
+                </a>
+                {% for c in sidebar_categories %}
+                    {% if c.children.all %}
+                        <div class="list-group-item list-group-item-action p-0 {% if current_category.parent.slug == c.slug or current_category.slug == c.slug and current_category.children.all %}active-parent-item{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center ps-3">
+                                <a href="{{ c.get_absolute_url }}" class="category-link flex-grow-1 py-2 {% if current_category.slug == c.slug and not current_category.parent %}fw-bold active{% endif %}">{{ c.name }}</a>
+                                <a class="category-toggle-icon p-2"
+                                   data-bs-toggle="collapse"
+                                   href="#collapse-{{ c.slug }}-desktop" {# Unique ID for desktop collapse #}
+                                   role="button"
+                                   aria-expanded="{% if current_category.parent.slug == c.slug or current_category.slug == c.slug and current_category.children.all %}true{% else %}false{% endif %}"
+                                   aria-controls="collapse-{{ c.slug }}-desktop">
+                                    <i class="bi bi-chevron-down"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="collapse {% if current_category.parent.slug == c.slug or current_category.slug == c.slug and current_category.children.all %}show{% endif %}" id="collapse-{{ c.slug }}-desktop">
+                            <div class="list-group subcategory-list">
+                                {% for sub_c in c.children.all %}
+                                    <a href="{{ sub_c.get_absolute_url }}"
+                                       class="list-group-item list-group-item-action subcategory-item {% if current_category.slug == sub_c.slug %}active{% endif %}">
+                                        {{ sub_c.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ c.get_absolute_url }}"
+                           class="list-group-item list-group-item-action {% if current_category.slug == c.slug %}active{% endif %}">
+                           {{ c.name }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Adjust column to take full width on smaller screens if sidebar is offcanvas #}
+        <div class="col-12 col-lg-9">
+            <h1 class="mb-4">
+                {% if current_category %}{{ current_category.name }}{% else %}All Products{% endif %}
+            </h1>
+
+            {% if current_category and current_category.description %}
+                <div class="alert alert-info">{{ current_category.description|linebreaks }}</div>
+            {% endif %}
+
+            {# Slideshow #}
+            {% if current_category and is_current_category_a_parent and slideshow_banners %}
+            <div id="categoryPageSlideshow" class="carousel slide mb-4 shadow-sm rounded" data-bs-ride="carousel" data-bs-interval="5000">
+                {# ... carousel HTML as before ... #}
+                <div class="carousel-indicators">
+                    {% for banner in slideshow_banners %}
+                    <button type="button" data-bs-target="#categoryPageSlideshow" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+                    {% endfor %}
+                </div>
+                <div class="carousel-inner rounded">
+                    {% for banner in slideshow_banners %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        {% if banner.link_url %}<a href="{{ banner.link_url }}" target="_blank" rel="noopener noreferrer">{% endif %}
+                        {% if banner.image %}<img src="{{ banner.image.url }}" class="d-block w-100" alt="{{ banner.alt_text|default:banner.title }}">
+                        {% else %}<img src="https://via.placeholder.com/1200x400/6c757d/ffffff?Text=Banner+Image+Missing" class="d-block w-100" alt="Banner image missing">{% endif %}
+                        {% if banner.link_url %}</a>{% endif %}
+                        {% if banner.caption_title or banner.caption_text %}
+                        <div class="carousel-caption d-none d-md-block">
+                            {% if banner.caption_title %}<h5>{{ banner.caption_title }}</h5>{% endif %}
+                            {% if banner.caption_text %}<p>{{ banner.caption_text }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if slideshow_banners|length > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#categoryPageSlideshow" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span></button>
+                <button class="carousel-control-next" type="button" data-bs-target="#categoryPageSlideshow" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span></button>
+                {% endif %}
+            </div>
+            {% endif %}
+            {# End Slideshow #}
+
+            {# Product Listing Section #}
+            {% if is_grouped_display_active and grouped_products_by_subcategory %}
+                 {# ... grouped product display HTML as before ... #}
+                {% for group in grouped_products_by_subcategory %}
+                    <div class="subcategory-group mb-5">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <h2 class="h3 mb-0"><a href="{{ group.subcategory.get_absolute_url }}" class="text-decoration-none text-dark">{{ group.subcategory.name }}</a></h2>
+                            <div class="subcategory-nav-arrows">
+                                <button class="btn btn-outline-secondary btn-sm prev-scroll-btn" type="button" data-target="#scroll-{{ group.subcategory.slug }}"><i class="bi bi-chevron-left"></i></button>
+                                <button class="btn btn-outline-secondary btn-sm next-scroll-btn" type="button" data-target="#scroll-{{ group.subcategory.slug }}"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="subcategory-product-row-scrollable hide-scrollbar" id="scroll-{{ group.subcategory.slug }}">
+                            {% for product in group.products %}
+                                <div class="product-card-horizontal-item"><div class="card h-100"><a href="{{ product.get_absolute_url }}" class="product-card-link"><div class="ratio ratio-4x3 product-image-container">{% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-list-image">{% else %}<img src="{% static 'images/default-product-image.png' %}" alt="No image available" class="card-img-top product-list-image">{% endif %}</div><div class="card-body d-flex flex-column"><h5 class="card-title">{{ product.name }}</h5><p class="card-text">{{ product.price|currency:request }}{% if product.has_variants %}<small class="text-muted d-block">(Multiple options)</small>{% endif %}</p></div></a></div></div>
+                            {% empty %}
+                                <div class="col"><p class="ms-2 text-muted">No products found in {{ group.subcategory.name }}.</p></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% elif products %}
+                 {# ... flat list of products HTML as before ... #}
+                <div class="row">
+                    {% for product in products %}
+                        <div class="col-lg-4 col-md-6 mb-4"><div class="card h-100"><a href="{{ product.get_absolute_url }}" class="product-card-link"><div class="ratio ratio-4x3 product-image-container">{% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-list-image">{% else %}<img src="{% static 'images/default-product-image.png' %}" alt="No image available" class="card-img-top product-list-image">{% endif %}</div><div class="card-body d-flex flex-column"><h5 class="card-title">{{ product.name }}</h5><p class="card-text">{{ product.price|currency:request }}{% if product.has_variants %}<small class="text-muted d-block">(Multiple options)</small>{% endif %}</p></div></a></div></div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="col"><p>No products found{% if current_category %} in {{ current_category.name }}{% endif %}.</p></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCategories" aria-labelledby="offcanvasCategoriesLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasCategoriesLabel">Categories</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        {# This is the SAME category list structure as the desktop sidebar #}
+        {# Ensure collapse target IDs are unique if both are somehow in DOM and active, or use different IDs #}
+        <div class="list-group category-sidebar">
+            <a href="{% url 'store:product_list_all' %}"
+               class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
+                All Products
+            </a>
+            {% for c in sidebar_categories %}
+                {% if c.children.all %}
+                    <div class="list-group-item list-group-item-action p-0 {% if current_category.parent.slug == c.slug or current_category.slug == c.slug and current_category.children.all %}active-parent-item{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center ps-3">
+                            <a href="{{ c.get_absolute_url }}" class="category-link flex-grow-1 py-2 {% if current_category.slug == c.slug and not current_category.parent %}fw-bold active{% endif %}">{{ c.name }}</a>
+                            <a class="category-toggle-icon p-2"
+                               data-bs-toggle="collapse"
+                               href="#collapse-{{ c.slug }}-mobile" {# Unique ID for mobile collapse #}
+                               role="button"
+                               aria-expanded="{% if current_category.parent.slug == c.slug or current_category.slug == c.slug and current_category.children.all %}true{% else %}false{% endif %}"
+                               aria-controls="collapse-{{ c.slug }}-mobile">
+                                <i class="bi bi-chevron-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse {% if current_category.parent.slug == c.slug or current_category.slug == c.slug and current_category.children.all %}show{% endif %}" id="collapse-{{ c.slug }}-mobile">
+                        <div class="list-group subcategory-list">
+                            {% for sub_c in c.children.all %}
+                                <a href="{{ sub_c.get_absolute_url }}"
+                                   class="list-group-item list-group-item-action subcategory-item {% if current_category.slug == sub_c.slug %}active{% endif %}">
+                                    {{ sub_c.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ c.get_absolute_url }}"
+                       class="list-group-item list-group-item-action {% if current_category.slug == c.slug %}active{% endif %}">
+                       {{ c.name }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+<style>
+    /* ... (Your existing CSS styles) ... */
+    :root { --product-item-width: 260px; --product-item-margin: 0.5rem; }
+    .category-sidebar .list-group-item .category-link { text-decoration: none; color: inherit; display: inline-block; }
+    .category-sidebar .list-group-item .category-toggle-icon { text-decoration: none; color: #6c757d; }
+    .category-sidebar .list-group-item .category-toggle-icon .bi { transition: transform 0.2s ease-in-out; font-size: 1.1rem; }
+    .category-sidebar .list-group-item .category-toggle-icon[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+    .category-sidebar .subcategory-list .list-group-item-action { padding-left: 2rem; font-size: 0.95em; }
+    .category-sidebar .subcategory-list .list-group-item-action.active { background-color: #0d6efd; color: white; border-color: #0d6efd; }
+    .product-image-container { background-color: #f8f9fa; }
+    .ratio > .product-list-image.card-img-top { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; }
+    a.product-card-link { text-decoration: none; color: inherit; display: block; height: 100%;}
+    a.product-card-link:hover { text-decoration: none; }
+    a.product-card-link .card-title { color: var(--bs-body-color, #212529) !important; margin-bottom: 0.5rem; }
+    a.product-card-link:hover .card-title { color: var(--bs-body-color, #212529) !important; }
+    .subcategory-nav-arrows .btn { line-height: 1; padding: 0.25rem 0.5rem; }
+    .subcategory-product-row-scrollable { display: flex; flex-wrap: nowrap; overflow-x: scroll; margin-bottom: 1rem; width: 100%; position: relative; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; scroll-padding-left: calc(50% - (var(--product-item-width) / 2) - var(--product-item-margin)); scroll-padding-right: calc(50% - (var(--product-item-width) / 2) - var(--product-item-margin)); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .product-card-horizontal-item { flex: 0 0 var(--product-item-width); width: var(--product-item-width); margin-left: var(--product-item-margin); margin-right: var(--product-item-margin); height: auto; scroll-snap-align: center; }
+
+    /* Optional: Ensure offcanvas body doesn't have excessive padding if list-group handles it */
+    #offcanvasCategories .offcanvas-body {
+        padding: 0; /* Remove padding if list-group items have their own */
+    }
+    #offcanvasCategories .category-sidebar {
+        border: none; /* Remove border from list-group if inside offcanvas body */
+        margin-bottom: 0 !important;
+    }
+    #offcanvasCategories .list-group-item {
+        border-radius: 0; /* Optional: remove border-radius for items in offcanvas */
+        border-left: none;
+        border-right: none;
+    }
+    #offcanvasCategories .list-group-item:first-child {
+        border-top: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+{# ... Your existing JavaScript for carousel initialization and scroll arrows ... #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Carousels if present
+    var mainCarouselElement = document.getElementById('categoryPageSlideshow');
+    if (mainCarouselElement) {
+        var carousel = new bootstrap.Carousel(mainCarouselElement, {
+            interval: 5000, wrap: true
+        });
+    }
+
+    // Initialize Horizontal Scroll Arrows
+    const scrollContainers = document.querySelectorAll('.subcategory-product-row-scrollable');
+    scrollContainers.forEach(container => {
+        const scrollWrapper = container.closest('.subcategory-group'); 
+        if (!scrollWrapper) return;
+        const prevButton = scrollWrapper.querySelector('.prev-scroll-btn');
+        const nextButton = scrollWrapper.querySelector('.next-scroll-btn');
+        let scrollAmount = 276; 
+        const firstItem = container.querySelector('.product-card-horizontal-item');
+        if (firstItem) {
+            const itemStyle = window.getComputedStyle(firstItem);
+            scrollAmount = firstItem.offsetWidth + parseFloat(itemStyle.marginLeft || 0) + parseFloat(itemStyle.marginRight || 0);
+        }
+        function updateArrowStates() {
+            if (!prevButton || !nextButton) return;
+            const scrollTolerance = 5; 
+            prevButton.disabled = container.scrollLeft <= scrollTolerance;
+            nextButton.disabled = container.scrollLeft + container.clientWidth >= container.scrollWidth - scrollTolerance;
+        }
+        if (prevButton) { prevButton.addEventListener('click', function() { container.scrollTo({ left: container.scrollLeft - scrollAmount, behavior: 'smooth' }); }); }
+        if (nextButton) { nextButton.addEventListener('click', function() { container.scrollTo({ left: container.scrollLeft + scrollAmount, behavior: 'smooth' }); }); }
+        container.addEventListener('scroll', updateArrowStates, { passive: true });
+        updateArrowStates();
+        if (typeof ResizeObserver !== 'undefined') { new ResizeObserver(updateArrowStates).observe(container); } 
+        else { window.addEventListener('resize', updateArrowStates); }
+    });
+
+    // Offcanvas category collapse unique IDs (if not already handled by unique IDs)
+    // This is important because the category list is duplicated
+    const offcanvasCategories = document.getElementById('offcanvasCategories');
+    if (offcanvasCategories) {
+        const collapseTriggers = offcanvasCategories.querySelectorAll('[data-bs-toggle="collapse"]');
+        collapseTriggers.forEach(trigger => {
+            const targetId = trigger.getAttribute('href'); // or data-bs-target
+            if (targetId && !targetId.endsWith('-mobile')) { // Check if it's not already unique
+                const newTargetId = targetId + '-mobile';
+                trigger.setAttribute('href', newTargetId);
+                trigger.setAttribute('aria-controls', newTargetId.substring(1)); // remove #
+                const targetElement = offcanvasCategories.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.setAttribute('id', newTargetId.substring(1));
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

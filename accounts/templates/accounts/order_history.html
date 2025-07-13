@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% block title %}My Order History{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">My Orders</h1>
+
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td>{{ order.get_total_cost|currency:request }}</td>
+                    <td>
+                        {% if order.paid %}
+                            <span class="badge bg-success">Paid</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending Payment</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'order_detail' order.id %}" class="btn btn-primary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">You have not placed any orders yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

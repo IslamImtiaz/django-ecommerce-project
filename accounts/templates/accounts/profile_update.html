@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Update Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Update Profile</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %} {# Display messages at the top if any #}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data"> {# enctype for file uploads if you add ImageField #}
+                        {% csrf_token %}
+
+                        <h4 class="mb-3 border-bottom pb-2">User Information</h4>
+                        {% for field in user_form %}
+                            <div class="mb-3 row">
+                                <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label text-sm-end">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}:</label>
+                                <div class="col-sm-9">
+                                    {{ field }} {# Field will have 'form-control' from forms.py #}
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted small">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        <h4 class="mt-4 mb-3 border-bottom pb-2">Profile Details</h4>
+                        {% for field in profile_form %}
+                            <div class="mb-3 row">
+                               <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label text-sm-end">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}:</label>
+                                <div class="col-sm-9">
+                                    {{ field }} {# Field will have 'form-control' from forms.py #}
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted small">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        <hr>
+                        <div class="mt-4 text-center">
+                            <button type="submit" class="btn btn-success btn-lg me-2">
+                                <i class="bi bi-check-circle-fill"></i> Save Changes
+                            </button>
+                            <a href="{% url 'profile_view' %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

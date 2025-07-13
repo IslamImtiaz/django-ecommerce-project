@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}Welcome to E-Store! Find Your Style.{% endblock %}
+
+{% block content %}
+{# This is the main content block for the homepage #}
+
+{# NEW: Hero Section #}
+<div class="hero-section text-center text-white mb-5">
+    <div class="hero-overlay"></div> {# This div creates a dark overlay for text readability #}
+    <div class="container position-relative"> {# Use a container to keep content centered and padded #}
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold">Discover the Season's Latest Trends</h1>
+                <p class="lead my-4">From timeless classics to the latest must-haves, find everything you need to express your unique style.</p>
+                <a href="{% url 'store:product_list_all' %}" class="btn btn-primary btn-lg rounded-pill px-4">
+                    <i class="bi bi-shop me-2"></i> Explore Our Store
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{# End Hero Section #}
+
+
+{# 1. Homepage Slideshow (Can be used for specific promotions below the main hero) #}
+{% if homepage_banners %}
+<div class="container"> {# Wrap slideshow in container to align with other content #}
+    <div id="homePageSlideshow" class="carousel slide mb-4 shadow-sm rounded" data-bs-ride="carousel" data-bs-interval="4000">
+        {# ... existing carousel HTML ... #}
+        <div class="carousel-indicators">
+            {% for banner in homepage_banners %}
+            <button type="button" data-bs-target="#homePageSlideshow" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner rounded">
+            {% for banner in homepage_banners %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                {% if banner.link_url %}<a href="{{ banner.link_url }}" target="_blank" rel="noopener noreferrer">{% endif %}
+                {% if banner.image %}
+                <img src="{{ banner.image.url }}" class="d-block w-100" alt="{{ banner.alt_text|default:banner.title }}">
+                {% else %}
+                <img src="https://via.placeholder.com/1200x400/007bff/ffffff?Text=Homepage+Banner" class="d-block w-100" alt="Homepage Banner">
+                {% endif %}
+                {% if banner.link_url %}</a>{% endif %}
+                {% if banner.caption_title or banner.caption_text %}
+                <div class="carousel-caption d-none d-md-block">
+                    {% if banner.caption_title %}<h5>{{ banner.caption_title }}</h5>{% endif %}
+                    {% if banner.caption_text %}<p>{{ banner.caption_text }}</p>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if homepage_banners|length > 1 %}
+        <button class="carousel-control-prev" type="button" data-bs-target="#homePageSlideshow" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#homePageSlideshow" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span></button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{# End Homepage Slideshow #}
+
+
+{# 2. Featured Products Section #}
+{% if featured_products %}
+<div class="container my-5">
+    {# ... existing featured products HTML ... #}
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+        <h2 class="h3 mb-0">Featured Products</h2>
+        <div class="featured-nav-arrows">
+            <button class="btn btn-outline-secondary btn-sm prev-scroll-btn" type="button" data-target="#featuredProductsScroll"><i class="bi bi-chevron-left"></i></button>
+            <button class="btn btn-outline-secondary btn-sm next-scroll-btn" type="button" data-target="#featuredProductsScroll"><i class="bi bi-chevron-right"></i></button>
+        </div>
+    </div>
+    <div class="featured-products-row-scrollable hide-scrollbar" id="featuredProductsScroll">
+        {% for product in featured_products %}
+        <div class="product-card-horizontal-item">
+            <div class="card h-100">
+                <a href="{{ product.get_absolute_url }}" class="product-card-link">
+                    <div class="ratio ratio-4x3 product-image-container">
+                        {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-list-image">
+                        {% else %}<img src="{% static 'images/default-product-image.png' %}" alt="No image available" class="card-img-top product-list-image">{% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.price|currency:request }}
+                            {% if product.has_variants %}<small class="text-muted d-block">(Multiple options)</small>{% endif %}
+                        </p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{# End Featured Products Section #}
+
+
+{# 3. Best-Selling Products / Random Products Grid #}
+{% if bestselling_products %}
+<div class="container my-5">
+    {# ... existing best-selling products HTML ... #}
+    <h2 class="h3 border-bottom pb-2 mb-4">
+        {% if bestselling_products.0 and bestselling_products.0.is_bestseller %}Our Best Sellers{% else %}Popular Picks{% endif %}
+    </h2>
+    <div class="row">
+        {% for product in bestselling_products %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card h-100">
+                <a href="{{ product.get_absolute_url }}" class="product-card-link">
+                    <div class="ratio ratio-4x3 product-image-container">
+                         {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-list-image">
+                         {% else %}<img src="{% static 'images/default-product-image.png' %}" alt="No image available" class="card-img-top product-list-image">{% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.price|currency:request }}
+                             {% if product.has_variants %}<small class="text-muted d-block">(Multiple options)</small>{% endif %}
+                        </p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{# End Best-Selling Products Section #}
+
+{% endblock %} {# END OF 'content' BLOCK #}
+
+
+{% block extra_css %}
+<style>
+    /* NEW: Styles for the Hero Section */
+    .hero-section {
+        position: relative;
+        padding: 8rem 0; /* Vertical padding to give it height */
+        background-image: url('https://images.unsplash.com/photo-1523381294911-8d3cead13475?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'); /* Replace with your desired background image */
+        background-size: cover;
+        background-position: center center;
+    }
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
+        z-index: 1;
+    }
+    .hero-section .container {
+        position: relative; /* Ensure text content is above the overlay */
+        z-index: 2;
+    }
+    .hero-section .btn {
+        font-weight: 600;
+        padding-top: 0.8rem;
+        padding-bottom: 0.8rem;
+    }
+
+
+    /* Define item width and margin as CSS variables */
+    :root {
+        --product-item-width: 260px;
+        --product-item-margin: 0.5rem; 
+    }
+    .product-image-container { background-color: #f8f9fa; }
+    .ratio > .product-list-image.card-img-top { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; }
+    a.product-card-link { text-decoration: none; color: inherit; display: block; height: 100%;}
+    a.product-card-link:hover { text-decoration: none; }
+    a.product-card-link .card-title { color: var(--bs-body-color, #212529) !important; margin-bottom: 0.5rem; }
+    a.product-card-link:hover .card-title { color: var(--bs-body-color, #212529) !important; }
+
+    /* HORIZONTAL SCROLL for Featured Products */
+    .featured-nav-arrows .btn { line-height: 1; padding: 0.25rem 0.5rem; }
+    .featured-products-row-scrollable {
+        display: flex !important; 
+        flex-wrap: nowrap !important; 
+        overflow-x: scroll; 
+        margin-bottom: 1rem; width: 100%; position: relative;
+        -webkit-overflow-scrolling: touch; 
+        scroll-snap-type: x mandatory; 
+        scroll-padding-left: calc(50% - (var(--product-item-width, 260px) / 2) - var(--product-item-margin, 0.5rem));
+        scroll-padding-right: calc(50% - (var(--product-item-width, 260px) / 2) - var(--product-item-margin, 0.5rem));
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .product-card-horizontal-item {
+        flex: 0 0 var(--product-item-width, 260px) !important; 
+        width: var(--product-item-width, 260px) !important; 
+        margin-left: var(--product-item-margin, 0.5rem);
+        margin-right: var(--product-item-margin, 0.5rem);
+        height: auto;
+        scroll-snap-align: center; 
+    }
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+{# ... Your existing JavaScript for carousel and scroll arrows from the previous version ... #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Homepage Carousel
+    var homeCarouselElement = document.getElementById('homePageSlideshow');
+    if (homeCarouselElement) {
+        var homeCarousel = new bootstrap.Carousel(homeCarouselElement, {
+            interval: 4000, wrap: true
+        });
+    }
+
+    // Initialize Horizontal Scroll Arrows for Featured Products
+    const featuredScrollContainer = document.getElementById('featuredProductsScroll');
+    if (featuredScrollContainer) {
+        const scrollWrapper = featuredScrollContainer.closest('.container.my-5');
+        let prevButton, nextButton;
+        if (scrollWrapper) {
+            const navArrowsContainer = scrollWrapper.querySelector('.featured-nav-arrows');
+            if (navArrowsContainer) {
+                prevButton = navArrowsContainer.querySelector('.prev-scroll-btn');
+                nextButton = navArrowsContainer.querySelector('.next-scroll-btn');
+            }
+        }
+        let scrollAmount = 276; 
+        const firstItem = featuredScrollContainer.querySelector('.product-card-horizontal-item');
+        if (firstItem) {
+            const itemStyle = window.getComputedStyle(firstItem);
+            scrollAmount = firstItem.offsetWidth + parseFloat(itemStyle.marginLeft || 0) + parseFloat(itemStyle.marginRight || 0);
+        }
+        function updateFeaturedArrowStates() {
+            if (!prevButton || !nextButton || !featuredScrollContainer.offsetParent) return;
+            const scrollTolerance = 5; 
+            prevButton.disabled = featuredScrollContainer.scrollLeft <= scrollTolerance;
+            nextButton.disabled = featuredScrollContainer.scrollLeft + featuredScrollContainer.clientWidth >= featuredScrollContainer.scrollWidth - scrollTolerance;
+        }
+        if (prevButton) { prevButton.addEventListener('click', function() { featuredScrollContainer.scrollTo({ left: featuredScrollContainer.scrollLeft - scrollAmount, behavior: 'smooth' }); });}
+        if (nextButton) { nextButton.addEventListener('click', function() { featuredScrollContainer.scrollTo({ left: featuredScrollContainer.scrollLeft + scrollAmount, behavior: 'smooth' }); });}
+        featuredScrollContainer.addEventListener('scroll', updateFeaturedArrowStates, { passive: true });
+        updateFeaturedArrowStates();
+        if (typeof ResizeObserver !== 'undefined') { new ResizeObserver(updateFeaturedArrowStates).observe(featuredScrollContainer); } 
+        else { window.addEventListener('resize', updateFeaturedArrowStates); }
+    }
+});
+</script>
+{% endblock %}

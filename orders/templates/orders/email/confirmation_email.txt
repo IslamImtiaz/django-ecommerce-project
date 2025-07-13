@@ -1,0 +1,25 @@
+Dear {{ order.first_name }},
+
+Thank you for your order!
+
+This email confirms your order #{{ order.id }} placed on {{ order.created_at|date:"F d, Y" }}.
+
+ORDER SUMMARY:
+{% for item in order.items.all %}
+- {{ item.product_variant.product.name }} ({{ item.product_variant.size|default:'' }} / {{ item.product_variant.color|default:'' }})
+  Quantity: {{ item.quantity }}
+  Price: {{ item.price|currency:request }}
+  Total: {{ item.get_cost|currency:request }}
+{% endfor %}
+
+GRAND TOTAL: {{ order.get_total_cost|currency:request }}
+
+SHIPPING ADDRESS:
+{{ order.first_name }} {{ order.last_name }}
+{{ order.address }}
+{{ order.city }}, {{ order.postal_code }}
+{{ order.country }}
+
+Thank you for shopping with us!
+
+The E-Store Team

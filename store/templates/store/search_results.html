@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}
+    Search Results for "{{ query }}"
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 d-lg-none mb-3">
+            <button class="btn btn-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCategoriesSearch" aria-controls="offcanvasCategoriesSearch">
+                <i class="bi bi-filter-left"></i> Browse Categories
+            </button>
+        </div>
+
+        <div class="col-lg-3 d-none d-lg-block">
+            <h2>Categories</h2>
+            <div class="list-group category-sidebar mb-3">
+                <a href="{% url 'store:product_list_all' %}"
+                   class="list-group-item list-group-item-action {% if not current_category and not query %}active{% endif %}">
+                    All Products
+                </a>
+                {% for c in sidebar_categories %} {# sidebar_categories comes from the view #}
+                    {% if c.children.all %}
+                        <div class="list-group-item list-group-item-action p-0">
+                            <div class="d-flex justify-content-between align-items-center ps-3">
+                                <a href="{{ c.get_absolute_url }}" class="category-link flex-grow-1 py-2">{{ c.name }}</a>
+                                <a class="category-toggle-icon p-2"
+                                   data-bs-toggle="collapse"
+                                   href="#collapse-search-{{ c.slug }}-desktop" {# Unique ID for desktop #}
+                                   role="button" aria-expanded="false"
+                                   aria-controls="collapse-search-{{ c.slug }}-desktop">
+                                    <i class="bi bi-chevron-down"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="collapse" id="collapse-search-{{ c.slug }}-desktop">
+                            <div class="list-group subcategory-list">
+                                {% for sub_c in c.children.all %}
+                                    <a href="{{ sub_c.get_absolute_url }}"
+                                       class="list-group-item list-group-item-action subcategory-item">
+                                        {{ sub_c.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ c.get_absolute_url }}"
+                           class="list-group-item list-group-item-action">
+                           {{ c.name }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-9"> {# Adjusts to full width on smaller screens #}
+            {% if query %}
+                <h1 class="mb-4">Search Results for "<span class="text-primary">{{ query }}</span>"</h1>
+            {% else %}
+                <h1 class="mb-4">Search Products</h1>
+                {% if not query_searched %} {# Show only if page loaded without a query initially #}
+                <p>Please enter a term in the search bar above to find products.</p>
+                {% endif %}
+            {% endif %}
+
+            {% if query_searched %}
+                {% if results %}
+                    <p class="text-muted mb-3">{{ results|length }} product{{ results|pluralize }} found.</p>
+                    <div class="row">
+                        {% for product in results %}
+                            <div class="col-lg-4 col-md-6 mb-4"> {# Product card grid #}
+                                <div class="card h-100">
+                                    <a href="{{ product.get_absolute_url }}" class="product-card-link">
+                                        <div class="ratio ratio-4x3 product-image-container">
+                                            {% if product.image %}
+                                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-list-image">
+                                            {% else %}
+                                                <img src="{% static 'images/default-product-image.png' %}" alt="No image available" class="card-img-top product-list-image">
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title">{{ product.name }}</h5>
+                                            <p class="card-text">{{ product.price|currency:request }}
+                                                {% if product.has_variants %}
+                                                    <small class="text-muted d-block">(Multiple options)</small>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mt-4" role="alert">
+                        No products found matching your search criteria for "<span class="fw-bold">{{ query }}</span>".
+                        <br>Please try a different search term or browse our categories.
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCategoriesSearch" aria-labelledby="offcanvasCategoriesSearchLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasCategoriesSearchLabel">Categories</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        {# This is the SAME category list structure as the desktop sidebar #}
+        <div class="list-group category-sidebar">
+            <a href="{% url 'store:product_list_all' %}"
+               class="list-group-item list-group-item-action {% if not current_category and not query %}active{% endif %}">
+                All Products
+            </a>
+            {% for c in sidebar_categories %}
+                {% if c.children.all %}
+                    <div class="list-group-item list-group-item-action p-0">
+                        <div class="d-flex justify-content-between align-items-center ps-3">
+                            <a href="{{ c.get_absolute_url }}" class="category-link flex-grow-1 py-2">{{ c.name }}</a>
+                            <a class="category-toggle-icon p-2"
+                               data-bs-toggle="collapse"
+                               href="#collapse-search-{{ c.slug }}-mobile" {# Unique ID for mobile #}
+                               role="button" aria-expanded="false"
+                               aria-controls="collapse-search-{{ c.slug }}-mobile">
+                                <i class="bi bi-chevron-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse" id="collapse-search-{{ c.slug }}-mobile">
+                        <div class="list-group subcategory-list">
+                            {% for sub_c in c.children.all %}
+                                <a href="{{ sub_c.get_absolute_url }}"
+                                   class="list-group-item list-group-item-action subcategory-item">
+                                    {{ sub_c.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ c.get_absolute_url }}"
+                       class="list-group-item list-group-item-action">
+                       {{ c.name }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    /* Define item width and margin as CSS variables if needed for any specific styling here */
+    /* :root { --product-item-width: 260px; --product-item-margin: 0.5rem; } */
+
+    /* Category Sidebar Styles (copied from list.html, ideally move to global CSS) */
+    .category-sidebar .list-group-item .category-link { text-decoration: none; color: inherit; display: inline-block; }
+    .category-sidebar .list-group-item .category-toggle-icon { text-decoration: none; color: #6c757d; }
+    .category-sidebar .list-group-item .category-toggle-icon .bi { transition: transform 0.2s ease-in-out; font-size: 1.1rem; }
+    .category-sidebar .list-group-item .category-toggle-icon[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+    .category-sidebar .subcategory-list .list-group-item-action { padding-left: 2rem; font-size: 0.95em; }
+    .category-sidebar .subcategory-list .list-group-item-action.active { background-color: #0d6efd; color: white; border-color: #0d6efd; }
+
+    /* Product Image Styles (copied from list.html, ideally move to global CSS) */
+    .product-image-container { background-color: #f8f9fa; }
+    .ratio > .product-list-image.card-img-top { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; }
+    
+    /* Styles for product card link and title (copied from list.html, ideally move to global CSS) */
+    a.product-card-link { text-decoration: none; color: inherit; display: block; height: 100%;}
+    a.product-card-link:hover { text-decoration: none; }
+    a.product-card-link .card-title { color: var(--bs-body-color, #212529) !important; margin-bottom: 0.5rem; }
+    a.product-card-link:hover .card-title { color: var(--bs-body-color, #212529) !important; }
+    
+    /* Optional: Offcanvas body padding adjustment if needed */
+    #offcanvasCategoriesSearch .offcanvas-body { padding: 0; }
+    #offcanvasCategoriesSearch .category-sidebar { border: none; margin-bottom: 0 !important; }
+    #offcanvasCategoriesSearch .list-group-item { border-radius: 0; border-left: none; border-right: none; }
+    #offcanvasCategoriesSearch .list-group-item:first-child { border-top: none; }
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Offcanvas category collapse unique IDs - crucial for duplicated category list
+    // Using a more specific ID for the offcanvas on this page
+    const offcanvasCategoriesSearch = document.getElementById('offcanvasCategoriesSearch');
+    if (offcanvasCategoriesSearch) {
+        const collapseTriggers = offcanvasCategoriesSearch.querySelectorAll('[data-bs-toggle="collapse"]');
+        collapseTriggers.forEach(trigger => {
+            const targetId = trigger.getAttribute('href'); // or data-bs-target
+            // Ensure we only modify if it's not already unique for mobile (e.g. doesn't end in -mobile)
+            // The IDs in the offcanvas for this page are already suffixed with -mobile in the HTML.
+            // This script might be redundant if HTML IDs are already unique.
+            // However, it can act as a safeguard or be used if you copy the exact same HTML block.
+            // For now, the HTML has unique IDs like #collapse-search-{{ c.slug }}-mobile so this JS might not be strictly needed.
+            // Let's comment it out if HTML handles uniqueness.
+            /*
+            if (targetId && !targetId.endsWith('-mobile-search')) { 
+                const newTargetId = targetId + '-mobile-search'; // Even more specific
+                trigger.setAttribute('href', newTargetId);
+                const targetElement = offcanvasCategoriesSearch.querySelector(targetId); // Find by old ID
+                if (targetElement) {
+                    trigger.setAttribute('aria-controls', newTargetId.substring(1)); 
+                    targetElement.setAttribute('id', newTargetId.substring(1));
+                }
+            }
+            */
+        });
+    }
+});
+</script>
+{% endblock %}

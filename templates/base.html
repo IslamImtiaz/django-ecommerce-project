@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My E-commerce Site{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        .color-swatch-display {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        .announcement-strip {
+            background-color: #000000;
+            color: #FFFFFF;
+            padding: 0.1em 0.5em;
+            text-align: center;
+            width: 100%;
+            /* position: fixed; top: 0; left: 0; z-index: 1035; */ /* Optional: for fixed strip */
+        }
+        .announcement-strip .announcement-content {
+            display: inline-block; 
+            max-width: 100%;
+        }
+        .announcement-strip .announcement-content p {
+            margin: 0;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 767.98px) {
+            .announcement-strip .announcement-content {
+                display: block; 
+                overflow: hidden;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .announcement-strip .announcement-content p {
+                display: inline-block;
+                padding-left: 100%;
+                animation: marquee-announcement 18s linear infinite;
+                will-change: transform;
+            }
+        }
+
+        /* --- Bottom Navigation Bar Styles --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 60px; /* Adjust height as needed */
+            background-color: #ffffff; 
+            border-top: 1px solid #dee2e6; /* Bootstrap's default border color */
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch; /* Make items stretch to fill height */
+            padding: 0; /* Remove padding if items handle their own */
+            z-index: 1020; /* Below modals (1050+), but above most content */
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            text-decoration: none;
+            color: #6c757d; /* Bootstrap's text-muted color */
+            font-size: 0.7rem; /* Smaller text for bottom nav */
+            padding: 0.3rem 0.1rem; /* Adjust padding within item */
+            text-align: center;
+            position: relative; /* For dropup positioning context */
+        }
+
+        .bottom-nav-item i {
+            font-size: 1.4rem; /* Icon size */
+            margin-bottom: 0.1rem;
+        }
+        .bottom-nav-item span {
+            line-height: 1.2;
+        }
+
+        .bottom-nav-item.active,
+        .bottom-nav-item .bottom-nav-button.active { /* Style button when its dropup is active/shown */
+            color: var(--bs-primary, #0d6efd); /* Bootstrap primary color */
+        }
+        .bottom-nav-item:hover,
+        .bottom-nav-item .bottom-nav-button:hover {
+            color: var(--bs-primary-hover, #0a58ca); /* Darker shade for hover */
+        }
+
+        /* Styling for the Profile button within the dropup structure */
+        .bottom-nav-item .bottom-nav-button {
+            color: inherit; 
+            text-decoration: none;
+            padding: 0; 
+            border: none;
+            background: none;
+            display: flex; /* Make the button itself a flex container */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: inherit; 
+            width: 100%; 
+            height: 100%; /* Make button fill the nav item space */
+            cursor: pointer;
+        }
+        .bottom-nav-item .bottom-nav-button:focus {
+            box-shadow: none;
+            outline: none;
+        }
+        /* Dropup menu styling */
+        .bottom-nav-item.dropup .dropdown-menu {
+            width: calc(100vw - 2rem); /* Example: almost full width with some margin */
+            max-width: 300px; /* Max width for the menu */
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 0.5rem !important; /* Ensure it's above the button */
+            border-radius: 0.375rem; /* Bootstrap's default border-radius */
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+        }
+        .bottom-nav-item.dropup .dropdown-menu .dropdown-item {
+            font-size: 0.9rem; /* Adjust font size for dropdown items */
+            padding: 0.5rem 1rem;
+        }
+
+        @media (max-width: 991.98px) { 
+            body { 
+                padding-bottom: 60px; /* This value MUST match the height of .bottom-nav */
+            }
+        }
+
+
+
+        @keyframes marquee-announcement {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-200%); }
+        }
+        /* Basic styling for the logout button to look like a link */
+        .color-box, .size-box {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 0.25rem; /* Bootstrap's default border-radius */
+            transition: all 0.2s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .color-box:hover, .size-box:hover {
+            border-color: #999;
+        }
+
+        .color-box.selected, .size-box.selected {
+            border-color: #007bff; /* Bootstrap primary color */
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .color-box .color-swatch {
+            width: 30px; /* Inner swatch slightly smaller */
+            height: 30px;
+            border: 1px solid #eee; /* Slight border for very light colors */
+            border-radius: 0.15rem;
+            pointer-events: none; /* So click goes to parent .color-box */
+        }
+
+        /* If you use text inside color box instead of/with swatch */
+        .color-box .color-name {
+            font-size: 0.75rem;
+            pointer-events: none;
+        }
+
+        /* Style for disabled add to cart button */
+        #add-to-cart-button:disabled {
+            background-color: #6c757d; /* Bootstrap secondary/disabled color */
+            border-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {# ANNOUNCEMENT STRIP - Now dynamic #}
+    {% if current_announcement %} {# Variable from context processor #}
+    <div class="announcement-strip">
+        <div class="announcement-content">
+            {% if current_announcement.link_url %}
+            <a href="{{ current_announcement.link_url }}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">
+                <p>{{ current_announcement.message|safe }}</p> {# Use |safe if message can contain simple HTML/emojis you trust #}
+            </a>
+            {% else %}
+            <p>{{ current_announcement.message|safe }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {# End Announcement Strip #}
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container">
+            {# 1. Navbar Brand - Always visible on the left #}
+            <a class="navbar-brand" href="{% url 'home' %}">E-Store</a>
+
+            {# 2. Search Form - MODIFIED to be shorter on mobile #}
+            {# We remove flex-grow-1 and control width directly #}
+            <form class="d-flex ms-2 me-auto me-lg-0 order-lg-2" method="get" action="{% url 'store:search_results' %}">
+                {# `me-auto` now pushes other items away from this group #}
+                <input class="form-control form-control-sm" type="search" name="q" placeholder="Search..." aria-label="Search" value="{{ request.GET.q }}" style="width: 150px;"> {# Reduced width for mobile #}
+            </form>
+
+            {# 3. Currency Switcher for MOBILE/TABLET VIEW ONLY #}
+            <div class="d-lg-none"> {# This is now visible on mobile, next to the search bar #}
+                <form action="{% url 'core:set_currency' %}" method="post" id="currency-form-mobile">
+                    {% csrf_token %}
+                    <select name="currency" onchange="this.form.submit()" class="form-select form-select-sm" style="width: auto;">
+                        <option value="PKR" {% if request.session.currency == 'PKR' or not request.session.currency %}selected{% endif %}>PKR</option>
+                        <option value="USD" {% if request.session.currency == 'USD' %}selected{% endif %}>USD</option>
+                    </select>
+                </form>
+            </div>
+
+            {# Hamburger button - remains hidden #}
+            <button class="navbar-toggler d-none order-lg-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavContent" aria-controls="navbarNavContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            {# Collapsible content for DESKTOP main nav links #}
+            <div class="collapse navbar-collapse order-lg-1" id="navbarNavContent">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store:product_list_all' %}">Store</a>
+                    </li>
+                </ul>
+            </div>
+
+            {# User Auth, Cart, and Currency Switcher for DESKTOP ONLY #}
+            <div class="navbar-nav order-lg-3 ms-lg-auto d-none d-lg-flex align-items-center">
+                {# Currency Switcher for DESKTOP #}
+                <form action="{% url 'core:set_currency' %}" method="post" id="currency-form-desktop" class="me-2">
+                    {% csrf_token %}
+                    <select name="currency" onchange="this.form.submit()" class="form-select form-select-sm" style="width: auto;">
+                        <option value="PKR" {% if request.session.currency == 'PKR' or not request.session.currency %}selected{% endif %}>PKR</option>
+                        <option value="USD" {% if request.session.currency == 'USD' %}selected{% endif %}>USD</option>
+                    </select>
+                </form>
+                
+                {# Desktop User Auth & Cart links #}
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUserLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Hello, {{ user.first_name|default:user.username }}!
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUserLink">
+                            <li><a class="dropdown-item" href="{% url 'profile_view' %}">My Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'order_history' %}">My Orders</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="dropdown-item">Logout</button></form></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'cart:cart_detail' %}"> 
+                        <i class="bi bi-cart"></i> <span class="d-none d-xl-inline">Cart</span>
+                        {% if cart|length > 0 %}<span class="badge rounded-pill bg-danger ms-1">{{ cart|length }}</span>{% endif %}
+                    </a>
+                </li>
+            </div>
+        </div>
+    </nav>
+
+    {# MAIN CONTENT AREA #}
+    {# Messages will be displayed here if any #}
+
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="container mt-5 pt-4 my-md-5 pt-md-5 border-top d-none d-md-block">
+        <p class="text-center text-muted">&copy; {% now "Y" %} My E-commerce Site. All rights reserved.</p>
+    </footer>
+
+    {# BOTTOM NAVIGATION BAR - For Mobile/Tablet Screens (hidden on lg and up) #}
+
+    <nav class="bottom-nav d-lg-none fixed-bottom">
+        <a href="{% url 'home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="bi bi-house-fill"></i>
+            <span>Home</span>
+        </a>
+
+        {# NEW: STORE LINK ADDED HERE #}
+        <a href="{% url 'store:product_list_all' %}" class="bottom-nav-item {% if request.resolver_match.app_name == 'store' %}active{% endif %}">
+            <i class="bi bi-shop"></i>
+            <span>Store</span>
+        </a>
+        
+        {# Cart Link - Update href when ready #}
+        <a href="{% url 'cart:cart_detail' %}" class="bottom-nav-item {% if request.resolver_match.app_name == 'cart' %}active{% endif %}"> 
+            <i class="bi bi-cart-fill"></i>
+            <span>Cart</span>
+            {% if cart|length > 0 %}
+                <span class="badge rounded-pill bg-danger position-absolute top-0 start-50 translate-middle-x" style="font-size:0.6em; padding: 0.3em 0.5em; margin-top: 4px;">{{ cart|length }}</span>
+            {% endif %}
+        </a>
+        
+        {# Profile Dropup Menu #}
+        <div class="bottom-nav-item dropup">
+            <button type="button" class="bottom-nav-button" id="bottomNavProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-fill"></i>
+                <span>Profile</span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="bottomNavProfileMenu">
+                {% if user.is_authenticated %}
+                    <li><a class="dropdown-item" href="{% url 'profile_view' %}"><i class="bi bi-person-lines-fill me-2"></i>View Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'order_history' %}"><i class="bi bi-list-ul me-2"></i>My Orders</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><form action="{% url 'logout' %}" method="post" class="d-block">{% csrf_token %}<button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></form></li>
+                {% else %}
+                    <li><a class="dropdown-item" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
+                    <li><a class="dropdown-item" href="{% url 'register' %}"><i class="bi bi-person-plus-fill me-2"></i>Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    {# End Bottom Navigation Bar #}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    {% block extra_js %}{% endblock %} </body>
+</html>

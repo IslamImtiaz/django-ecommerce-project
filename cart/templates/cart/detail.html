@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}Your Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5">
+    <div class="row">
+        <div class="col">
+            <h1 class="mb-4">Your Shopping Cart</h1>
+
+            {% if cart %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" style="min-width: 600px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" colspan="2">Product</th>
+                                <th scope="col" class="text-center">Quantity</th>
+                                <th scope="col" class="text-end">Unit Price</th>
+                                <th scope="col" class="text-end">Price</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart %}
+                                <tr>
+                                    <td style="width: 80px;">
+                                        <a href="{{ item.variant.product.get_absolute_url }}">
+                                            {% with image_to_show=item.variant.image|default:item.variant.product.image %}{% if image_to_show %}<img src="{{ image_to_show.url }}" alt="{{ item.variant.product.name }}" style="height: 60px; width: 60px; object-fit: cover;" class="rounded">{% else %}<img src="{% static 'images/default-product-image.png' %}" alt="Default image" style="height: 60px; width: 60px; object-fit: cover;" class="rounded">{% endif %}{% endwith %}
+                                        </a>
+                                    </td>
+                                    <td class="text-start">
+                                        <a href="{{ item.variant.product.get_absolute_url }}" class="text-decoration-none text-dark fw-bold">{{ item.variant.product.name }}</a>
+                                        <p class="small text-muted mb-0">
+                                            {% if item.variant.size %}Size: {{ item.variant.size }}{% endif %}{% if item.variant.size and item.variant.color %}<br>{% endif %}{% if item.variant.color %}Color: <span class="color-swatch-display" style="background-color: {{ item.variant.color }};"></span>{% endif %}
+                                        </p>
+                                    </td>
+                                    <td class="text-center">
+                                        {# UPDATED QUANTITY FORM #}
+                                        <form action="{% url 'cart:cart_update' item.variant.id %}" method="post" class="quantity-form d-flex justify-content-center align-items-center">
+                                            {% csrf_token %}
+                                            {{ item.update_quantity_form.variant_id }}
+                                            {{ item.update_quantity_form.override }}
+                                            <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn" data-action="decrease">-</button>
+                                            {{ item.update_quantity_form.quantity }}
+                                            <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn" data-action="increase">+</button>
+                                        </form>
+                                    </td>
+                                    <td class="text-end">{{ item.price|currency:request }}</td>
+                                    <td class="text-end">{{ item.total_price|currency:request }}</td>
+                                    <td class="text-center">
+                                        <form action="{% url 'cart:cart_remove' item.variant.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove item"><i class="bi bi-trash-fill"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light"><td colspan="4" class="text-end fw-bold h5">Grand Total</td><td colspan="2" class="text-end fw-bold h5">{{ cart.get_total_price|currency:request }}</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                    <a href="{% url 'store:product_list_all' %}" class="btn btn-outline-secondary order-md-1"><i class="bi bi-arrow-left"></i> Continue Shopping</a>
+                    <a href="{% url 'orders:order_create' %}" class="btn btn-primary order-md-2 btn-lg"><i class="bi bi-credit-card"></i> Proceed to Checkout</a>
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">Your shopping cart is currently empty.</div>
+                <div class="text-center"><a href="{% url 'store:product_list_all' %}" class="btn btn-primary">Start Shopping</a></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    .quantity-form button { line-height: 1; }
+    .quantity-form input[type="number"] { -moz-appearance: textfield; } /* Hide spinner on Firefox */
+    .quantity-form input[type="number"]::-webkit-outer-spin-button,
+    .quantity-form input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.quantity-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.quantity-form');
+            const quantityInput = form.querySelector('input[name="quantity"]');
+            let currentValue = parseInt(quantityInput.value);
+
+            if (this.dataset.action === 'increase') {
+                quantityInput.value = currentValue + 1;
+            } else if (this.dataset.action === 'decrease') {
+                if (currentValue > 0) { // Quantity can be decreased to 0 (to remove)
+                    quantityInput.value = currentValue - 1;
+                }
+            }
+
+            // Optional: Auto-submit form on change after a short delay
+            // clearTimeout(form.dataset.timeout);
+            // form.dataset.timeout = setTimeout(() => {
+            //     form.submit();
+            // }, 500); // 500ms delay
+
+            // For now, let's require an explicit update, so we'll add an update button
+            // Or, let's make it so clicking +/- submits the form immediately.
+            form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}
