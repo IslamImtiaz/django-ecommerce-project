@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.conf import settings
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -29,8 +30,16 @@ class Profile(models.Model):
         return f'{self.user.username} Profile'
 
 # Signal to create or update the user profile automatically whenever a User instance is saved.
-@receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_or_get_user_profile(sender, instance, created, **kwargs):
+    """
+    Ensures a Profile object exists for every User.
+    If a new user is created, it creates a profile.
+    If an existing user is saved, it checks for a profile and creates one if it's missing.
+    """
     if created:
         Profile.objects.create(user=instance)
-    instance.profile.save()
+    else:
+        # Use get_or_create for existing users to handle cases
+        # like a superuser created without a profile.
+        Profile.objects.get_or_create(user=instance)
