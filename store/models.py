@@ -82,15 +82,15 @@ class Product(models.Model):
     @property
     def get_display_image(self):
         """
-        Returns the URL for the product's display image.
-        Prioritizes the uploaded file, then the URL, then a static default.
+        Returns the URL for the product's display image or a default if none exists.
         """
         if self.image and hasattr(self.image, 'url'):
+            # If an image was uploaded, return its URL
             return self.image.url
-        elif self.image_url:
-            return self.image_url
         else:
+            # Otherwise, return the path to the static default image
             return static('images/default_product_image.png')
+
 
 # New Model for Product Variations
 class ProductVariant(models.Model):
