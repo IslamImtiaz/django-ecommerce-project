@@ -23,19 +23,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v+!t^*b+cuwo8g9armz+4!l80jup+=v8(vedg*%j4f%e%-!82&'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-development-fallback-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []# settings.py
-
 ALLOWED_HOSTS = [
-    '127.0.0.1',                # Allows you to run locally
-    'localhost',                # Allows you to run locally
-    'arabcollection.store',     # Your new root domain
-    '.arabcollection.store',    # Allows www.arabcollection.store and other subdomains
+    'arabcollection.store',      # Your custom domain
+    '.arabcollection.store',     # Allows www and other subdomains
 ]
+
+# This part automatically adds your default Render URL
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,10 +94,10 @@ WSGI_APPLICATION = 'ecommerce_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
+        conn_max_age=600
+    )
 }
 
 
@@ -150,6 +152,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ecommerce_project/settings.py
 LOGIN_REDIRECT_URL = 'home'  # Redirect to home page after login
 LOGOUT_REDIRECT_URL = 'home' # Redirect to home page after logout
+LOGIN_URL = 'login'
 
 # ecommerce_project/settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # Prints emails to the console
