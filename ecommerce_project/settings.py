@@ -29,10 +29,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-development-fall
 # In ecommerce_project/settings.py
 IS_PRODUCTION = os.environ.get('RENDER') == 'true'
 
-if IS_PRODUCTION:
-    DEBUG = False
-else:
-    DEBUG = True
+
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'arabcollection.store',      # Your custom domain
