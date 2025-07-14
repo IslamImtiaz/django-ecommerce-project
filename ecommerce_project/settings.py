@@ -26,12 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-development-fallback-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-IS_PRODUCTION = os.environ.get('RENDER') == 'true'
-if IS_PRODUCTION:
-    DEBUG = False
-else:
-    DEBUG = True
-
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'arabcollection.store',      # Your custom domain
