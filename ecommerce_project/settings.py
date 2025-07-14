@@ -26,7 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-development-fallback-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# In ecommerce_project/settings.py
+IS_PRODUCTION = os.environ.get('RENDER') == 'true'
+
+if IS_PRODUCTION:
+    DEBUG = False
+else:
+    DEBUG = True
 
 ALLOWED_HOSTS = [
     'arabcollection.store',      # Your custom domain
@@ -163,9 +169,14 @@ EMAIL_PORT = '587'
 EMAIL_USE_TLS = True # Usually True for this port
 DEFAULT_FROM_EMAIL = 'E-Store <noreply@yourdomain.com>' # The "from" address users will see
 
+# In ecommerce_project/settings.py
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+if IS_PRODUCTION:
+    # On Render, media files are stored on the persistent disk
+    MEDIA_ROOT = '/var/data/media'
+else:
+    # In development, media files are stored locally
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Custom Setting for Cart Session ID
 CART_SESSION_ID = 'cart'
 
